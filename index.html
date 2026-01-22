@@ -1,9 +1,20 @@
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Checklist</title>
+
+  <div id="authBox" class="card">
+  <input id="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+  <button id="loginBtn">Login / Sign up</button>
+  <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
+
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     body { margin: 0; background: #f6f6f6; color: #111; }
@@ -98,6 +109,12 @@
   <script>
     // ---- Data model ----
     // state = { lists: [{id, title, items:[{id, text, done}]}], selectedListId }
+    const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    
+    
     const STORAGE_KEY = "checklist_simple_v1";
 
     const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
