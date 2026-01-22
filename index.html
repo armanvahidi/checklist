@@ -11,7 +11,7 @@
     .card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
     input, button, select { font: inherit; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
     button { cursor: pointer; }
-    ul { list-style: none; padding: 0; }
+    ul { list-style: none; padding: 0; margin: 0; }
     li { border-top: 1px solid #eee; padding: 8px 0; }
     .done { text-decoration: line-through; opacity: 0.6; }
     .row { display: flex; gap: 8px; }
@@ -26,22 +26,39 @@
 
 <main>
 
- <div id="authBox" class="card">
-  <div class="row">
-    <input id="email" class="grow" placeholder="Email" />
-    <button id="sendCodeBtn">Send code</button>
+  <div id="authBox" class="card">
+    <div class="row">
+      <input id="email" class="grow" placeholder="Email" />
+      <button id="sendCodeBtn">Send code</button>
+    </div>
+
+    <div class="row" style="margin-top:8px;">
+      <input id="code" class="grow" placeholder="6-digit code" inputmode="numeric" />
+      <button id="verifyCodeBtn">Verify</button>
+    </div>
+
+    <div id="authMsg" style="margin-top:8px; font-size:12px;"></div>
+    <button id="logoutBtn" style="display:none; margin-top:10px;">Logout</button>
   </div>
 
-  <div class="row" style="margin-top:8px;">
-    <input id="code" class="grow" placeholder="6-digit code" inputmode="numeric" />
-    <button id="verifyCodeBtn">Verify</button>
-  </div>
+  <!-- THIS WAS MISSING IN YOUR FILE -->
+  <div id="app" style="display:none;">
 
-  <div id="authMsg" style="margin-top:8px; font-size:12px;"></div>
+    <!-- LISTS (your JS/database relies on this) -->
+    <div class="card">
+      <h3>Lists</h3>
+      <div class="row">
+        <input id="newListTitle" class="grow" placeholder="New list title (e.g. Shopping)" />
+        <button id="addListBtn">Add</button>
+      </div>
 
-  <button id="logoutBtn" style="display:none; margin-top:10px;">Logout</button>
-</div>
+      <div class="row" style="margin-top:8px;">
+        <select id="listSelect" class="grow"></select>
+        <button id="deleteListBtn">Delete</button>
+      </div>
 
+      <div id="dbMsg" style="margin-top:8px; font-size:12px;"></div>
+    </div>
 
     <div class="card">
       <h3>Items</h3>
@@ -53,88 +70,90 @@
     </div>
 
   </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
   // =========================
-  // CONFIG — PUT YOUR KEYS HERE
+  // CONFIG
   // =========================
   const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // =========================
-  // AUTH
+  // SMALL HELPERS
   // =========================
- const emailInput = document.getElementById("email");
-const codeInput = document.getElementById("code");
-const sendCodeBtn = document.getElementById("sendCodeBtn");
-const verifyCodeBtn = document.getElementById("verifyCodeBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const authMsg = document.getElementById("authMsg");
-const appDiv = document.getElementById("app");
+  const authMsg = document.getElementById("authMsg");
+  const dbMsg = document.getElementById("dbMsg");
+  const appDiv = document.getElementById("app");
 
-function setMsg(s) { authMsg.textContent = s || ""; }
+  function setAuthMsg(s) { authMsg.textContent = s || ""; }
+  function setDbMsg(s) { dbMsg.textContent = s || ""; }
 
-sendCodeBtn.onclick = async () => {
-  setMsg("");
-  const email = emailInput.value.trim();
-  if (!email) return setMsg("Enter your email.");
-
-  // Sends a 6-digit OTP code to the email address
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: {
-      // This helps on GitHub Pages; safe to include
-      emailRedirectTo: window.location.origin
+  function mustOk(opName, res) {
+    if (res.error) {
+      console.error(opName, res.error);
+      setDbMsg(opName + " failed: " + res.error.message);
+      return false;
     }
-  });
-
-  if (error) return setMsg("Could not send code: " + error.message);
-  setMsg("Code sent. Check your email and enter the 6-digit code.");
-};
-
-verifyCodeBtn.onclick = async () => {
-  setMsg("");
-  const email = emailInput.value.trim();
-  const token = codeInput.value.trim();
-
-  if (!email) return setMsg("Enter your email.");
-  if (!token) return setMsg("Enter the code.");
-
-  const { error } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "email"
-  });
-
-  if (error) return setMsg("Could not verify: " + error.message);
-
-  setMsg("Signed in.");
-  await refreshSession();
-};
-
-logoutBtn.onclick = async () => {
-  await supabase.auth.signOut();
-  location.reload();
-};
-
-async function refreshSession() {
-  const { data } = await supabase.auth.getSession();
-
-  if (data.session) {
-    document.getElementById("authBox").style.display = "none";
-    appDiv.style.display = "block";
-    logoutBtn.style.display = "inline-block";
-    await loadFromSupabase();
-  } else {
-    appDiv.style.display = "none";
+    setDbMsg("");
+    return true;
   }
-}
-refreshSession();
+
+  // =========================
+  // AUTH (OTP email code)
+  // =========================
+  const emailInput = document.getElementById("email");
+  const codeInput = document.getElementById("code");
+  const sendCodeBtn = document.getElementById("sendCodeBtn");
+  const verifyCodeBtn = document.getElementById("verifyCodeBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  sendCodeBtn.onclick = async () => {
+    setAuthMsg("");
+    const email = emailInput.value.trim();
+    if (!email) return setAuthMsg("Enter your email.");
+
+    const res = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    });
+
+    if (res.error) return setAuthMsg("Could not send code: " + res.error.message);
+    setAuthMsg("Code sent. Check your email and enter the code.");
+  };
+
+  verifyCodeBtn.onclick = async () => {
+    setAuthMsg("");
+    const email = emailInput.value.trim();
+    const token = codeInput.value.trim();
+    if (!email) return setAuthMsg("Enter your email.");
+    if (!token) return setAuthMsg("Enter the code.");
+
+    const res = await supabase.auth.verifyOtp({ email, token, type: "email" });
+    if (res.error) return setAuthMsg("Could not verify: " + res.error.message);
+
+    setAuthMsg("Signed in.");
+    await refreshSession();
+  };
+
+  logoutBtn.onclick = async () => {
+    await supabase.auth.signOut();
+    location.reload();
+  };
+
+  async function refreshSession() {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      document.getElementById("authBox").style.display = "none";
+      appDiv.style.display = "block";
+      await loadFromSupabase();
+    } else {
+      appDiv.style.display = "none";
+    }
+  }
 
   // =========================
   // APP STATE
@@ -156,15 +175,21 @@ refreshSession();
   // LOAD
   // =========================
   async function loadFromSupabase() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setDbMsg("Not signed in.");
+      return;
+    }
 
-    const { data } = await supabase
+    const res = await supabase
       .from("lists")
       .select("id, title, items(id, text, done)")
       .eq("user_id", user.id)
       .order("created_at");
 
-    state.lists = data || [];
+    if (!mustOk("Load lists", res)) return;
+
+    state.lists = res.data || [];
     state.selectedListId = state.lists[0]?.id || null;
     render();
   }
@@ -186,10 +211,12 @@ refreshSession();
     const list = getSelectedList();
     if (!list) return;
 
-    list.items.forEach(item => {
+    (list.items || []).forEach(item => {
       const li = document.createElement("li");
       li.className = item.done ? "done" : "";
-      li.textContent = item.text + " ";
+
+      const text = document.createElement("span");
+      text.textContent = item.text + " ";
 
       const c = document.createElement("button");
       c.textContent = "Complete";
@@ -203,7 +230,7 @@ refreshSession();
       d.textContent = "Delete";
       d.onclick = () => deleteItem(item.id);
 
-      li.append(" ", c, " ", i, " ", d);
+      li.append(text, c, " ", i, " ", d);
       itemsList.appendChild(li);
     });
   }
@@ -212,37 +239,53 @@ refreshSession();
   // ACTIONS
   // =========================
   addListBtn.onclick = async () => {
+    setDbMsg("");
     const title = newListTitle.value.trim();
     if (!title) return;
+
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from("lists").insert({ title, user_id: user.id });
+    const ins = await supabase.from("lists").insert({ title, user_id: user.id });
+    if (!mustOk("Insert list", ins)) return;
+
     newListTitle.value = "";
     await loadFromSupabase();
   };
 
   deleteListBtn.onclick = async () => {
+    setDbMsg("");
     const list = getSelectedList();
     if (!list) return;
-    await supabase.from("lists").delete().eq("id", list.id);
+
+    const del = await supabase.from("lists").delete().eq("id", list.id);
+    if (!mustOk("Delete list", del)) return;
+
     await loadFromSupabase();
   };
 
   addItemBtn.onclick = async () => {
+    setDbMsg("");
     const text = newItemText.value.trim();
     if (!text) return;
+
     const list = getSelectedList();
-    await supabase.from("items").insert({ list_id: list.id, text, done: false });
+    if (!list) return setDbMsg("Create/select a list first.");
+
+    const ins = await supabase.from("items").insert({ list_id: list.id, text, done: false });
+    if (!mustOk("Insert item", ins)) return;
+
     newItemText.value = "";
     await loadFromSupabase();
   };
 
   async function setDone(id, done) {
-    await supabase.from("items").update({ done }).eq("id", id);
+    const up = await supabase.from("items").update({ done }).eq("id", id);
+    if (!mustOk("Update item", up)) return;
     await loadFromSupabase();
   }
 
   async function deleteItem(id) {
-    await supabase.from("items").delete().eq("id", id);
+    const del = await supabase.from("items").delete().eq("id", id);
+    if (!mustOk("Delete item", del)) return;
     await loadFromSupabase();
   }
 
@@ -251,9 +294,7 @@ refreshSession();
     render();
   };
 
-  // =========================
   // START
-  // =========================
   refreshSession();
 </script>
 
