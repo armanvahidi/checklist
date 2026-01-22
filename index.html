@@ -26,27 +26,22 @@
 
 <main>
 
-  <div id="authBox" class="card">
-    <input id="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Password" />
-    <button id="loginBtn">Login / Sign up</button>
-    <button id="logoutBtn" style="display:none;">Logout</button>
+ <div id="authBox" class="card">
+  <div class="row">
+    <input id="email" class="grow" placeholder="Email" />
+    <button id="sendCodeBtn">Send code</button>
   </div>
 
-  <div id="app" style="display:none;">
+  <div class="row" style="margin-top:8px;">
+    <input id="code" class="grow" placeholder="6-digit code" inputmode="numeric" />
+    <button id="verifyCodeBtn">Verify</button>
+  </div>
 
-    <div class="card">
-      <h3>Lists</h3>
-      <div class="row">
-        <input id="newListTitle" class="grow" placeholder="New list title" />
-        <button id="addListBtn">Add</button>
-      </div>
-      <br/>
-      <div class="row">
-        <select id="listSelect" class="grow"></select>
-        <button id="deleteListBtn">Delete</button>
-      </div>
-    </div>
+  <div id="authMsg" style="margin-top:8px; font-size:12px;"></div>
+
+  <button id="logoutBtn" style="display:none; margin-top:10px;">Logout</button>
+</div>
+
 
     <div class="card">
       <h3>Items</h3>
@@ -74,38 +69,72 @@
   // =========================
   // AUTH
   // =========================
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const appDiv = document.getElementById("app");
+ const emailInput = document.getElementById("email");
+const codeInput = document.getElementById("code");
+const sendCodeBtn = document.getElementById("sendCodeBtn");
+const verifyCodeBtn = document.getElementById("verifyCodeBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const authMsg = document.getElementById("authMsg");
+const appDiv = document.getElementById("app");
 
-  loginBtn.onclick = async () => {
-    const email = emailInput.value;
-    const password = passwordInput.value;
+function setMsg(s) { authMsg.textContent = s || ""; }
 
-    let { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      const res = await supabase.auth.signUp({ email, password });
-      if (res.error) alert(res.error.message);
+sendCodeBtn.onclick = async () => {
+  setMsg("");
+  const email = emailInput.value.trim();
+  if (!email) return setMsg("Enter your email.");
+
+  // Sends a 6-digit OTP code to the email address
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      // This helps on GitHub Pages; safe to include
+      emailRedirectTo: window.location.origin
     }
-    refreshSession();
-  };
+  });
 
-  logoutBtn.onclick = async () => {
-    await supabase.auth.signOut();
-    location.reload();
-  };
+  if (error) return setMsg("Could not send code: " + error.message);
+  setMsg("Code sent. Check your email and enter the 6-digit code.");
+};
 
-  async function refreshSession() {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      document.getElementById("authBox").style.display = "none";
-      appDiv.style.display = "block";
-      logoutBtn.style.display = "inline-block";
-      await loadFromSupabase();
-    }
+verifyCodeBtn.onclick = async () => {
+  setMsg("");
+  const email = emailInput.value.trim();
+  const token = codeInput.value.trim();
+
+  if (!email) return setMsg("Enter your email.");
+  if (!token) return setMsg("Enter the code.");
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email"
+  });
+
+  if (error) return setMsg("Could not verify: " + error.message);
+
+  setMsg("Signed in.");
+  await refreshSession();
+};
+
+logoutBtn.onclick = async () => {
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+async function refreshSession() {
+  const { data } = await supabase.auth.getSession();
+
+  if (data.session) {
+    document.getElementById("authBox").style.display = "none";
+    appDiv.style.display = "block";
+    logoutBtn.style.display = "inline-block";
+    await loadFromSupabase();
+  } else {
+    appDiv.style.display = "none";
   }
+}
+refreshSession();
 
   // =========================
   // APP STATE
