@@ -1,367 +1,232 @@
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Checklist</title>
-
-  <div id="authBox" class="card">
-  <input id="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-  <button id="loginBtn">Login / Sign up</button>
-  <button id="logoutBtn" style="display:none;">Logout</button>
-  </div>
-
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background: #f6f6f6; color: #111; }
-    header { padding: 14px 14px 10px; background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 0; }
-    h1 { margin: 0; font-size: 18px; font-weight: 650; }
-    main { padding: 14px; max-width: 720px; margin: 0 auto; }
-
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 12px; }
-    .row { display: flex; gap: 8px; align-items: center; }
-    .row > * { flex: 0 0 auto; }
-    .grow { flex: 1 1 auto; }
-
-    input, button, select {
-      font: inherit;
-      border-radius: 10px;
-      border: 1px solid #cfcfcf;
-      padding: 10px 12px;
-      background: #fff;
-    }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f6f6f6; }
+    header { padding: 12px; background: #fff; border-bottom: 1px solid #ddd; }
+    main { padding: 12px; max-width: 700px; margin: auto; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    input, button, select { font: inherit; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
     button { cursor: pointer; }
-    button:active { transform: translateY(1px); }
-    .btn { border: 1px solid #cfcfcf; background: #fff; }
-    .btn-primary { border-color: #111; background: #111; color: #fff; }
-    .btn-danger { border-color: #b00020; color: #b00020; background: #fff; }
-    .btn-ghost { border-color: transparent; background: transparent; color: #111; }
-
-    .section-title { margin: 14px 0 8px; font-size: 14px; color: #444; font-weight: 600; }
-
-    ul { list-style: none; padding: 0; margin: 0; }
-    li { padding: 10px 0; border-top: 1px solid #eee; }
-    li:first-child { border-top: none; }
-
-    .item-text { font-size: 16px; line-height: 1.2; }
-    .done .item-text { text-decoration: line-through; opacity: 0.6; }
-
-    .actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-    .badge { font-size: 12px; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; color: #555; }
-
-    /* mobile-friendly hit targets */
-    button { min-height: 42px; }
-    input { width: 100%; }
-
-    .split { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 700px) { .split { grid-template-columns: 1fr 1.2fr; } }
+    ul { list-style: none; padding: 0; }
+    li { border-top: 1px solid #eee; padding: 8px 0; }
+    .done { text-decoration: line-through; opacity: 0.6; }
+    .row { display: flex; gap: 8px; }
+    .grow { flex: 1; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Checklist</h1>
-  </header>
 
-  <main class="split">
-    <section class="card" aria-label="Lists">
-      <div class="section-title">Lists</div>
+<header>
+  <h2>Checklist</h2>
+</header>
 
-      <div class="row" style="margin-bottom:10px;">
-        <input id="newListTitle" class="grow" placeholder="New list title (e.g., Shopping)" autocomplete="off" />
-        <button id="addListBtn" class="btn-primary">Add</button>
-      </div>
+<main>
 
-      <div class="row" style="margin-bottom:10px;">
-        <select id="listSelect" class="grow" aria-label="Select list"></select>
-        <button id="deleteListBtn" class="btn-danger" title="Delete selected list">Delete</button>
-      </div>
+  <div id="authBox" class="card">
+    <input id="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="loginBtn">Login / Sign up</button>
+    <button id="logoutBtn" style="display:none;">Logout</button>
+  </div>
 
+  <div id="app" style="display:none;">
+
+    <div class="card">
+      <h3>Lists</h3>
       <div class="row">
-        <button id="exportBtn" class="btn">Export</button>
-        <button id="importBtn" class="btn">Import</button>
-        <button id="wipeBtn" class="btn-ghost" title="Remove all data from this device">Wipe</button>
+        <input id="newListTitle" class="grow" placeholder="New list title" />
+        <button id="addListBtn">Add</button>
       </div>
-
-      <p style="margin:10px 0 0; font-size:12px; color:#666;">
-        Saved locally on this device (no accounts).
-      </p>
-    </section>
-
-    <section class="card" aria-label="Items">
-      <div class="row" style="justify-content: space-between;">
-        <div class="section-title" id="itemsTitle">Items</div>
-        <span class="badge" id="countBadge">0</span>
+      <br/>
+      <div class="row">
+        <select id="listSelect" class="grow"></select>
+        <button id="deleteListBtn">Delete</button>
       </div>
+    </div>
 
-      <div class="row" style="margin-bottom:10px;">
-        <input id="newItemText" class="grow" placeholder="Add item…" autocomplete="off" />
-        <button id="addItemBtn" class="btn-primary">Add</button>
+    <div class="card">
+      <h3>Items</h3>
+      <div class="row">
+        <input id="newItemText" class="grow" placeholder="New item..." />
+        <button id="addItemBtn">Add</button>
       </div>
-
       <ul id="itemsList"></ul>
-    </section>
-  </main>
+    </div>
 
-  <script>
-    // ---- Data model ----
-    // state = { lists: [{id, title, items:[{id, text, done}]}], selectedListId }
-    const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </div>
 
-    
-    
-    const STORAGE_KEY = "checklist_simple_v1";
+</main>
 
-    const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    const loadState = () => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    };
+<script>
+  // =========================
+  // CONFIG — PUT YOUR KEYS HERE
+  // =========================
+  const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const saveState = (state) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    };
+  // =========================
+  // AUTH
+  // =========================
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const appDiv = document.getElementById("app");
 
-    const defaultState = () => {
-      const firstId = uid();
-      return {
-        lists: [{ id: firstId, title: "My List", items: [] }],
-        selectedListId: firstId
-      };
-    };
+  loginBtn.onclick = async () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
-    let state = loadState() || defaultState();
-    saveState(state);
-
-    // ---- DOM ----
-    const newListTitle = document.getElementById("newListTitle");
-    const addListBtn = document.getElementById("addListBtn");
-    const listSelect = document.getElementById("listSelect");
-    const deleteListBtn = document.getElementById("deleteListBtn");
-
-    const newItemText = document.getElementById("newItemText");
-    const addItemBtn = document.getElementById("addItemBtn");
-    const itemsList = document.getElementById("itemsList");
-    const itemsTitle = document.getElementById("itemsTitle");
-    const countBadge = document.getElementById("countBadge");
-
-    const exportBtn = document.getElementById("exportBtn");
-    const importBtn = document.getElementById("importBtn");
-    const wipeBtn = document.getElementById("wipeBtn");
-
-    const getSelectedList = () => state.lists.find(l => l.id === state.selectedListId);
-
-    // ---- Render ----
-    function renderLists() {
-      listSelect.innerHTML = "";
-      state.lists.forEach(l => {
-        const opt = document.createElement("option");
-        opt.value = l.id;
-        opt.textContent = l.title;
-        if (l.id === state.selectedListId) opt.selected = true;
-        listSelect.appendChild(opt);
-      });
-
-      deleteListBtn.disabled = state.lists.length === 0;
+    let { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      const res = await supabase.auth.signUp({ email, password });
+      if (res.error) alert(res.error.message);
     }
+    refreshSession();
+  };
 
-    function renderItems() {
-      const list = getSelectedList();
-      itemsList.innerHTML = "";
+  logoutBtn.onclick = async () => {
+    await supabase.auth.signOut();
+    location.reload();
+  };
 
-      if (!list) {
-        itemsTitle.textContent = "Items";
-        countBadge.textContent = "0";
-        return;
-      }
-
-      itemsTitle.textContent = `Items: ${list.title}`;
-      countBadge.textContent = String(list.items.length);
-
-      list.items.forEach(item => {
-        const li = document.createElement("li");
-        li.className = item.done ? "done" : "";
-
-        const top = document.createElement("div");
-        top.className = "row";
-        top.style.justifyContent = "space-between";
-        top.style.gap = "10px";
-
-        const text = document.createElement("div");
-        text.className = "item-text grow";
-        text.textContent = item.text;
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-
-        // Exactly three options: Incomplete, Complete, Delete
-        const incompleteBtn = document.createElement("button");
-        incompleteBtn.className = "btn";
-        incompleteBtn.textContent = "Incomplete";
-        incompleteBtn.disabled = !item.done;
-        incompleteBtn.addEventListener("click", () => setDone(item.id, false));
-
-        const completeBtn = document.createElement("button");
-        completeBtn.className = "btn";
-        completeBtn.textContent = "Complete";
-        completeBtn.disabled = item.done;
-        completeBtn.addEventListener("click", () => setDone(item.id, true));
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "btn-danger";
-        deleteBtn.textContent = "Delete";
-        deleteBtn.addEventListener("click", () => deleteItem(item.id));
-
-        actions.appendChild(incompleteBtn);
-        actions.appendChild(completeBtn);
-        actions.appendChild(deleteBtn);
-
-        top.appendChild(text);
-        top.appendChild(actions);
-        li.appendChild(top);
-        itemsList.appendChild(li);
-      });
+  async function refreshSession() {
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      document.getElementById("authBox").style.display = "none";
+      appDiv.style.display = "block";
+      logoutBtn.style.display = "inline-block";
+      await loadFromSupabase();
     }
+  }
 
-    function render() {
-      renderLists();
-      renderItems();
-      saveState(state);
-    }
+  // =========================
+  // APP STATE
+  // =========================
+  let state = { lists: [], selectedListId: null };
 
-    // ---- Actions ----
-    function addList(title) {
-      const t = title.trim();
-      if (!t) return;
-      const id = uid();
-      state.lists.unshift({ id, title: t, items: [] });
-      state.selectedListId = id;
-      newListTitle.value = "";
-      render();
-    }
+  const newListTitle = document.getElementById("newListTitle");
+  const addListBtn = document.getElementById("addListBtn");
+  const listSelect = document.getElementById("listSelect");
+  const deleteListBtn = document.getElementById("deleteListBtn");
 
-    function deleteSelectedList() {
-      const list = getSelectedList();
-      if (!list) return;
-      if (!confirm(`Delete list "${list.title}"?`)) return;
+  const newItemText = document.getElementById("newItemText");
+  const addItemBtn = document.getElementById("addItemBtn");
+  const itemsList = document.getElementById("itemsList");
 
-      state.lists = state.lists.filter(l => l.id !== list.id);
+  const getSelectedList = () => state.lists.find(l => l.id === state.selectedListId);
 
-      if (state.lists.length) state.selectedListId = state.lists[0].id;
-      else {
-        // always keep at least one list to avoid empty UI
-        const s = defaultState();
-        state.lists = s.lists;
-        state.selectedListId = s.selectedListId;
-      }
-      render();
-    }
+  // =========================
+  // LOAD
+  // =========================
+  async function loadFromSupabase() {
+    const { data: { user } } = await supabase.auth.getUser();
 
-    function addItem(text) {
-      const t = text.trim();
-      if (!t) return;
-      const list = getSelectedList();
-      if (!list) return;
-      list.items.push({ id: uid(), text: t, done: false });
-      newItemText.value = "";
-      render();
-    }
+    const { data } = await supabase
+      .from("lists")
+      .select("id, title, items(id, text, done)")
+      .eq("user_id", user.id)
+      .order("created_at");
 
-    function setDone(itemId, done) {
-      const list = getSelectedList();
-      if (!list) return;
-      const item = list.items.find(i => i.id === itemId);
-      if (!item) return;
-      item.done = done;
-      render();
-    }
-
-    function deleteItem(itemId) {
-      const list = getSelectedList();
-      if (!list) return;
-      list.items = list.items.filter(i => i.id !== itemId);
-      render();
-    }
-
-    // ---- Import/Export/Wipe ----
-    function exportData() {
-      const data = JSON.stringify(state, null, 2);
-      // Use a download without any libraries
-      const blob = new Blob([data], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "checklist-data.json";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function importData() {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "application/json";
-      input.onchange = async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-        const text = await file.text();
-        try {
-          const parsed = JSON.parse(text);
-          if (!parsed || !Array.isArray(parsed.lists)) throw new Error("Bad format");
-          state = parsed;
-          // minimal sanity
-          if (!state.selectedListId && state.lists[0]) state.selectedListId = state.lists[0].id;
-          render();
-        } catch {
-          alert("Could not import that file.");
-        }
-      };
-      input.click();
-    }
-
-    function wipeAll() {
-      if (!confirm("Wipe all lists and items from this device?")) return;
-      localStorage.removeItem(STORAGE_KEY);
-      state = defaultState();
-      render();
-    }
-
-    // ---- Event wiring ----
-    addListBtn.addEventListener("click", () => addList(newListTitle.value));
-    newListTitle.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") addList(newListTitle.value);
-    });
-
-    listSelect.addEventListener("change", () => {
-      state.selectedListId = listSelect.value;
-      render();
-    });
-
-    deleteListBtn.addEventListener("click", deleteSelectedList);
-
-    addItemBtn.addEventListener("click", () => addItem(newItemText.value));
-    newItemText.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") addItem(newItemText.value);
-    });
-
-    exportBtn.addEventListener("click", exportData);
-    importBtn.addEventListener("click", importData);
-    wipeBtn.addEventListener("click", wipeAll);
-
-    // initial render
+    state.lists = data || [];
+    state.selectedListId = state.lists[0]?.id || null;
     render();
-  </script>
+  }
+
+  // =========================
+  // RENDER
+  // =========================
+  function render() {
+    listSelect.innerHTML = "";
+    state.lists.forEach(l => {
+      const opt = document.createElement("option");
+      opt.value = l.id;
+      opt.textContent = l.title;
+      if (l.id === state.selectedListId) opt.selected = true;
+      listSelect.appendChild(opt);
+    });
+
+    itemsList.innerHTML = "";
+    const list = getSelectedList();
+    if (!list) return;
+
+    list.items.forEach(item => {
+      const li = document.createElement("li");
+      li.className = item.done ? "done" : "";
+      li.textContent = item.text + " ";
+
+      const c = document.createElement("button");
+      c.textContent = "Complete";
+      c.onclick = () => setDone(item.id, true);
+
+      const i = document.createElement("button");
+      i.textContent = "Incomplete";
+      i.onclick = () => setDone(item.id, false);
+
+      const d = document.createElement("button");
+      d.textContent = "Delete";
+      d.onclick = () => deleteItem(item.id);
+
+      li.append(" ", c, " ", i, " ", d);
+      itemsList.appendChild(li);
+    });
+  }
+
+  // =========================
+  // ACTIONS
+  // =========================
+  addListBtn.onclick = async () => {
+    const title = newListTitle.value.trim();
+    if (!title) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    await supabase.from("lists").insert({ title, user_id: user.id });
+    newListTitle.value = "";
+    await loadFromSupabase();
+  };
+
+  deleteListBtn.onclick = async () => {
+    const list = getSelectedList();
+    if (!list) return;
+    await supabase.from("lists").delete().eq("id", list.id);
+    await loadFromSupabase();
+  };
+
+  addItemBtn.onclick = async () => {
+    const text = newItemText.value.trim();
+    if (!text) return;
+    const list = getSelectedList();
+    await supabase.from("items").insert({ list_id: list.id, text, done: false });
+    newItemText.value = "";
+    await loadFromSupabase();
+  };
+
+  async function setDone(id, done) {
+    await supabase.from("items").update({ done }).eq("id", id);
+    await loadFromSupabase();
+  }
+
+  async function deleteItem(id) {
+    await supabase.from("items").delete().eq("id", id);
+    await loadFromSupabase();
+  }
+
+  listSelect.onchange = () => {
+    state.selectedListId = listSelect.value;
+    render();
+  };
+
+  // =========================
+  // START
+  // =========================
+  refreshSession();
+</script>
+
 </body>
 </html>
