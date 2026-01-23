@@ -111,8 +111,10 @@
   const verifyCodeBtn = document.getElementById("verifyCodeBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
+ 
   sendCodeBtn.onclick = async () => {
-    setAuthMsg("");
+    alert("Send code clicked");   
+    setAuthMsg("Sending...");
     const email = emailInput.value.trim();
     if (!email) return setAuthMsg("Enter your email.");
 
