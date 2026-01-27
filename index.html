@@ -76,6 +76,10 @@
     
     document.getElementById("authMsg").textContent = "SCRIPT LOADED: Here we are!";
 
+    const btn = document.getElementById("sendCodeBtn");
+    
+    btn.addEventListener("click", () => alert("Send code handler attached"));
+
 </script>
   
 // <!-- <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
