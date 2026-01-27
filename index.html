@@ -82,318 +82,233 @@
 
 </script>
   
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https:cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
 <script>
-  const authMsg = document.getElementById("authMsg");
-
-  function setMsg(s) {
-    authMsg.textContent = s;
-    console.log(s);
-  }
-
-  setMsg("Script started");
-
-  if (!window.supabase) {
-    setMsg("ERROR: Supabase library not loaded");
-    throw new Error("Supabase not loaded");
-  }
-
-  setMsg("Supabase library loaded");
-
-  const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  setMsg("Supabase client created");
-
-  const sendCodeBtn = document.getElementById("sendCodeBtn");
-  const emailInput = document.getElementById("email");
-
-  sendCodeBtn.addEventListener("click", async () => {
-    alert("Button clicked");
-    const email = emailInput.value.trim();
-
-    if (!email) {
-      setMsg("Enter an email");
-      return;
-    }
-
-    setMsg("Calling Supabase...");
-
-    try {
-      const res = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: window.location.href
-        }
-      });
-
-      console.log("Supabase response:", res);
-
-      if (res.error) {
-        setMsg("Supabase error: " + res.error.message);
-      } else {
-        setMsg("Supabase accepted request. Check email (and spam).");
-      }
-    } catch (e) {
-      console.error(e);
-      setMsg("Exception: " + (e.message || e));
-    }
-  });
-
-  setMsg("Handler attached. Ready.");
   
-</script>
-
-
+  CONFIG
+  const SUPABASE_URL = "https:jifxrvcvruwanqgxgghw.supabase.co";
+   const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
+   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    =========================
   
-  <!-- //  // Show JS errors on the page (so we don't need the console)
-  // window.addEventListener("error", (e) => {
-  //   const el = document.getElementById("authMsg");
-  //   if (el) el.textContent = "JS error: " + e.message;
-  // });
-  // window.addEventListener("unhandledrejection", (e) => {
-  //   const el = document.getElementById("authMsg");
-  //   if (el) el.textContent = "Promise error: " + (e.reason?.message || e.reason);
-  // });
+    SMALL HELPERS
+    =========================
+   const authMsg = document.getElementById("authMsg");
+   const dbMsg = document.getElementById("dbMsg");
+   const appDiv = document.getElementById("app");
 
-  // // Grab authMsg early so we can display boot messages
-  // const authMsg = document.getElementById("authMsg");
-  // function setAuthMsg(s) { authMsg.textContent = s || ""; }
+   function setAuthMsg(s) { authMsg.textContent = s || ""; }
+   function setDbMsg(s) { dbMsg.textContent = s || ""; }
 
-  // // BOOT CHECK
-  // setAuthMsg("Booting...");
-  // if (!window.supabase) {
-  //   setAuthMsg("Supabase library did not load (CDN blocked or failed).");
-  //   throw new Error("supabase-js not loaded");
-  // }
-  // setAuthMsg("Supabase library loaded.");
+   function mustOk(opName, res) {
+     if (res.error) {
+       console.error(opName, res.error);
+       setDbMsg(opName + " failed: " + res.error.message);
+       return false;
+     }
+     setDbMsg("");
+     return true;
+   }
 
-  // // CONFIG
-  // const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
-  // const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
-  // const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  // // =========================
-  
-  // // SMALL HELPERS
-  // // =========================
-  // const authMsg = document.getElementById("authMsg");
-  // const dbMsg = document.getElementById("dbMsg");
-  // const appDiv = document.getElementById("app");
-
-  // function setAuthMsg(s) { authMsg.textContent = s || ""; }
-  // function setDbMsg(s) { dbMsg.textContent = s || ""; }
-
-  // function mustOk(opName, res) {
-  //   if (res.error) {
-  //     console.error(opName, res.error);
-  //     setDbMsg(opName + " failed: " + res.error.message);
-  //     return false;
-  //   }
-  //   setDbMsg("");
-  //   return true;
-  // }
-
-  // // =========================
-  // // AUTH (OTP email code)
-  // // =========================
-  // const emailInput = document.getElementById("email");
-  // const codeInput = document.getElementById("code");
-  // const sendCodeBtn = document.getElementById("sendCodeBtn");
-  // const verifyCodeBtn = document.getElementById("verifyCodeBtn");
-  // const logoutBtn = document.getElementById("logoutBtn");
+    =========================
+    AUTH (OTP email code)
+    =========================
+   const emailInput = document.getElementById("email");
+   const codeInput = document.getElementById("code");
+   const sendCodeBtn = document.getElementById("sendCodeBtn");
+   const verifyCodeBtn = document.getElementById("verifyCodeBtn");
+   const logoutBtn = document.getElementById("logoutBtn");
 
  
-  // sendCodeBtn.onclick = async () => {
-  //   alert("Send code clicked");   
-  //   setAuthMsg("Sending...");
-  //   const email = emailInput.value.trim();
-  //   if (!email) return setAuthMsg("Enter your email.");
+   sendCodeBtn.onclick = async () => {
+     alert("Send code clicked");   
+     setAuthMsg("Sending...");
+     const email = emailInput.value.trim();
+     if (!email) return setAuthMsg("Enter your email.");
 
-  //   const res = await supabase.auth.signInWithOtp({
-  //     email,
-  //     options: { emailRedirectTo: window.location.origin }
-  //   });
+     const res = await supabase.auth.signInWithOtp({
+       email,
+       options: { emailRedirectTo: window.location.origin }
+     });
 
-  //   if (res.error) return setAuthMsg("Could not send code: " + res.error.message);
-  //   setAuthMsg("Code sent. Check your email and enter the code.");
-  // };
+     if (res.error) return setAuthMsg("Could not send code: " + res.error.message);
+     setAuthMsg("Code sent. Check your email and enter the code.");
+   };
 
-  // verifyCodeBtn.onclick = async () => {
-  //   setAuthMsg("");
-  //   const email = emailInput.value.trim();
-  //   const token = codeInput.value.trim();
-  //   if (!email) return setAuthMsg("Enter your email.");
-  //   if (!token) return setAuthMsg("Enter the code.");
+   verifyCodeBtn.onclick = async () => {
+     setAuthMsg("");
+     const email = emailInput.value.trim();
+     const token = codeInput.value.trim();
+     if (!email) return setAuthMsg("Enter your email.");
+     if (!token) return setAuthMsg("Enter the code.");
 
-  //   const res = await supabase.auth.verifyOtp({ email, token, type: "email" });
-  //   if (res.error) return setAuthMsg("Could not verify: " + res.error.message);
+     const res = await supabase.auth.verifyOtp({ email, token, type: "email" });
+     if (res.error) return setAuthMsg("Could not verify: " + res.error.message);
 
-  //   setAuthMsg("Signed in.");
-  //   await refreshSession();
-  // };
+     setAuthMsg("Signed in.");
+     await refreshSession();
+   };
 
-  // logoutBtn.onclick = async () => {
-  //   await supabase.auth.signOut();
-  //   location.reload();
-  // };
+   logoutBtn.onclick = async () => {
+     await supabase.auth.signOut();
+     location.reload();
+   };
 
-  // async function refreshSession() {
-  //   const { data } = await supabase.auth.getSession();
-  //   if (data.session) {
-  //     document.getElementById("authBox").style.display = "none";
-  //     appDiv.style.display = "block";
-  //     await loadFromSupabase();
-  //   } else {
-  //     appDiv.style.display = "none";
-  //   }
-  // }
+   async function refreshSession() {
+     const { data } = await supabase.auth.getSession();
+     if (data.session) {
+       document.getElementById("authBox").style.display = "none";
+       appDiv.style.display = "block";
+       await loadFromSupabase();
+     } else {
+       appDiv.style.display = "none";
+     }
+   }
 
-  // // =========================
-  // // APP STATE
-  // // =========================
-  // let state = { lists: [], selectedListId: null };
+    =========================
+    APP STATE
+    =========================
+   let state = { lists: [], selectedListId: null };
 
-  // const newListTitle = document.getElementById("newListTitle");
-  // const addListBtn = document.getElementById("addListBtn");
-  // const listSelect = document.getElementById("listSelect");
-  // const deleteListBtn = document.getElementById("deleteListBtn");
+   const newListTitle = document.getElementById("newListTitle");
+   const addListBtn = document.getElementById("addListBtn");
+   const listSelect = document.getElementById("listSelect");
+   const deleteListBtn = document.getElementById("deleteListBtn");
 
-  // const newItemText = document.getElementById("newItemText");
-  // const addItemBtn = document.getElementById("addItemBtn");
-  // const itemsList = document.getElementById("itemsList");
+   const newItemText = document.getElementById("newItemText");
+   const addItemBtn = document.getElementById("addItemBtn");
+   const itemsList = document.getElementById("itemsList");
 
-  // const getSelectedList = () => state.lists.find(l => l.id === state.selectedListId);
+   const getSelectedList = () => state.lists.find(l => l.id === state.selectedListId);
 
-  // // =========================
-  // // LOAD
-  // // =========================
-  // async function loadFromSupabase() {
-  //   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  //   if (userError || !user) {
-  //     setDbMsg("Not signed in.");
-  //     return;
-  //   }
+    =========================
+    LOAD
+    =========================
+   async function loadFromSupabase() {
+     const { data: { user }, error: userError } = await supabase.auth.getUser();
+     if (userError || !user) {
+       setDbMsg("Not signed in.");
+       return;
+     }
 
-  //   const res = await supabase
-  //     .from("lists")
-  //     .select("id, title, items(id, text, done)")
-  //     .eq("user_id", user.id)
-  //     .order("created_at");
+     const res = await supabase
+       .from("lists")
+       .select("id, title, items(id, text, done)")
+       .eq("user_id", user.id)
+       .order("created_at");
 
-  //   if (!mustOk("Load lists", res)) return;
+     if (!mustOk("Load lists", res)) return;
 
-  //   state.lists = res.data || [];
-  //   state.selectedListId = state.lists[0]?.id || null;
-  //   render();
-  // }
+     state.lists = res.data || [];
+     state.selectedListId = state.lists[0]?.id || null;
+     render();
+   }
 
-  // // =========================
-  // // RENDER
-  // // =========================
-  // function render() {
-  //   listSelect.innerHTML = "";
-  //   state.lists.forEach(l => {
-  //     const opt = document.createElement("option");
-  //     opt.value = l.id;
-  //     opt.textContent = l.title;
-  //     if (l.id === state.selectedListId) opt.selected = true;
-  //     listSelect.appendChild(opt);
-  //   });
+    =========================
+    RENDER
+    =========================
+   function render() {
+     listSelect.innerHTML = "";
+     state.lists.forEach(l => {
+       const opt = document.createElement("option");
+       opt.value = l.id;
+       opt.textContent = l.title;
+       if (l.id === state.selectedListId) opt.selected = true;
+       listSelect.appendChild(opt);
+     });
 
-  //   itemsList.innerHTML = "";
-  //   const list = getSelectedList();
-  //   if (!list) return;
+     itemsList.innerHTML = "";
+     const list = getSelectedList();
+     if (!list) return;
 
-  //   (list.items || []).forEach(item => {
-  //     const li = document.createElement("li");
-  //     li.className = item.done ? "done" : "";
+     (list.items || []).forEach(item => {
+       const li = document.createElement("li");
+       li.className = item.done ? "done" : "";
 
-  //     const text = document.createElement("span");
-  //     text.textContent = item.text + " ";
+       const text = document.createElement("span");
+       text.textContent = item.text + " ";
 
-  //     const c = document.createElement("button");
-  //     c.textContent = "Complete";
-  //     c.onclick = () => setDone(item.id, true);
+       const c = document.createElement("button");
+       c.textContent = "Complete";
+       c.onclick = () => setDone(item.id, true);
 
-  //     const i = document.createElement("button");
-  //     i.textContent = "Incomplete";
-  //     i.onclick = () => setDone(item.id, false);
+       const i = document.createElement("button");
+       i.textContent = "Incomplete";
+       i.onclick = () => setDone(item.id, false);
 
-  //     const d = document.createElement("button");
-  //     d.textContent = "Delete";
-  //     d.onclick = () => deleteItem(item.id);
+       const d = document.createElement("button");
+       d.textContent = "Delete";
+       d.onclick = () => deleteItem(item.id);
 
-  //     li.append(text, c, " ", i, " ", d);
-  //     itemsList.appendChild(li);
-  //   });
-  // }
+       li.append(text, c, " ", i, " ", d);
+       itemsList.appendChild(li);
+     });
+   }
 
-  // // =========================
-  // // ACTIONS
-  // // =========================
-  // addListBtn.onclick = async () => {
-  //   setDbMsg("");
-  //   const title = newListTitle.value.trim();
-  //   if (!title) return;
+    =========================
+    ACTIONS
+    =========================
+   addListBtn.onclick = async () => {
+     setDbMsg("");
+     const title = newListTitle.value.trim();
+     if (!title) return;
 
-  //   const { data: { user } } = await supabase.auth.getUser();
-  //   const ins = await supabase.from("lists").insert({ title, user_id: user.id });
-  //   if (!mustOk("Insert list", ins)) return;
+     const { data: { user } } = await supabase.auth.getUser();
+     const ins = await supabase.from("lists").insert({ title, user_id: user.id });
+     if (!mustOk("Insert list", ins)) return;
 
-  //   newListTitle.value = "";
-  //   await loadFromSupabase();
-  // };
+     newListTitle.value = "";
+     await loadFromSupabase();
+   };
 
-  // deleteListBtn.onclick = async () => {
-  //   setDbMsg("");
-  //   const list = getSelectedList();
-  //   if (!list) return;
+   deleteListBtn.onclick = async () => {
+     setDbMsg("");
+     const list = getSelectedList();
+     if (!list) return;
 
-  //   const del = await supabase.from("lists").delete().eq("id", list.id);
-  //   if (!mustOk("Delete list", del)) return;
+     const del = await supabase.from("lists").delete().eq("id", list.id);
+     if (!mustOk("Delete list", del)) return;
 
-  //   await loadFromSupabase();
-  // };
+     await loadFromSupabase();
+   };
 
-  // addItemBtn.onclick = async () => {
-  //   setDbMsg("");
-  //   const text = newItemText.value.trim();
-  //   if (!text) return;
+   addItemBtn.onclick = async () => {
+     setDbMsg("");
+     const text = newItemText.value.trim();
+     if (!text) return;
 
-  //   const list = getSelectedList();
-  //   if (!list) return setDbMsg("Create/select a list first.");
+     const list = getSelectedList();
+     if (!list) return setDbMsg("Create/select a list first.");
 
-  //   const ins = await supabase.from("items").insert({ list_id: list.id, text, done: false });
-  //   if (!mustOk("Insert item", ins)) return;
+     const ins = await supabase.from("items").insert({ list_id: list.id, text, done: false });
+     if (!mustOk("Insert item", ins)) return;
 
-  //   newItemText.value = "";
-  //   await loadFromSupabase();
-  // };
+     newItemText.value = "";
+     await loadFromSupabase();
+   };
 
-  // async function setDone(id, done) {
-  //   const up = await supabase.from("items").update({ done }).eq("id", id);
-  //   if (!mustOk("Update item", up)) return;
-  //   await loadFromSupabase();
-  // }
+   async function setDone(id, done) {
+     const up = await supabase.from("items").update({ done }).eq("id", id);
+     if (!mustOk("Update item", up)) return;
+     await loadFromSupabase();
+   }
 
-  // async function deleteItem(id) {
-  //   const del = await supabase.from("items").delete().eq("id", id);
-  //   if (!mustOk("Delete item", del)) return;
-  //   await loadFromSupabase();
-  // }
+   async function deleteItem(id) {
+     const del = await supabase.from("items").delete().eq("id", id);
+     if (!mustOk("Delete item", del)) return;
+     await loadFromSupabase();
+   }
 
-  // listSelect.onchange = () => {
-  //   state.selectedListId = listSelect.value;
-  //   render();
-  // };
+   listSelect.onchange = () => {
+     state.selectedListId = listSelect.value;
+     render();
+   };
 
-  // // START
-  // refreshSession();
-<!-- </script>  -->
+    START
+  refreshSession();
+</script>
  
 </body>
 </html>
