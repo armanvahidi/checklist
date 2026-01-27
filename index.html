@@ -72,29 +72,20 @@
   </div>
 </main>
 
-  <script>
-    
-    document.getElementById("authMsg").textContent = "SCRIPT LOADED: " + new Date().toISOString();
-
-    const btn = document.getElementById("sendCodeBtn");
-    
-    btn.addEventListener("click", () => alert("Send code handler attached"));
-
-</script>
-  
+   
 <script src="https:cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 
 <script>
   
-  CONFIG
+  //CONFIG
   const SUPABASE_URL = "https:jifxrvcvruwanqgxgghw.supabase.co";
    const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    =========================
+ //   =========================
   
-    SMALL HELPERS
-    =========================
+  //  SMALL HELPERS
+//    =========================
    const authMsg = document.getElementById("authMsg");
    const dbMsg = document.getElementById("dbMsg");
    const appDiv = document.getElementById("app");
@@ -112,9 +103,9 @@
      return true;
    }
 
-    =========================
-    AUTH (OTP email code)
-    =========================
+ //   =========================
+ //   AUTH (OTP email code)
+ //   =========================
    const emailInput = document.getElementById("email");
    const codeInput = document.getElementById("code");
    const sendCodeBtn = document.getElementById("sendCodeBtn");
@@ -167,9 +158,9 @@
      }
    }
 
-    =========================
-    APP STATE
-    =========================
+//    =========================
+//    APP STATE
+//    =========================
    let state = { lists: [], selectedListId: null };
 
    const newListTitle = document.getElementById("newListTitle");
@@ -183,9 +174,9 @@
 
    const getSelectedList = () => state.lists.find(l => l.id === state.selectedListId);
 
-    =========================
-    LOAD
-    =========================
+//    =========================
+//    LOAD
+//    =========================
    async function loadFromSupabase() {
      const { data: { user }, error: userError } = await supabase.auth.getUser();
      if (userError || !user) {
@@ -206,9 +197,9 @@
      render();
    }
 
-    =========================
-    RENDER
-    =========================
+//    =========================
+//    RENDER
+//    =========================
    function render() {
      listSelect.innerHTML = "";
      state.lists.forEach(l => {
@@ -247,9 +238,9 @@
      });
    }
 
-    =========================
-    ACTIONS
-    =========================
+//    =========================
+//    ACTIONS
+//    =========================
    addListBtn.onclick = async () => {
      setDbMsg("");
      const title = newListTitle.value.trim();
@@ -306,7 +297,7 @@
      render();
    };
 
-    START
+//    START
   refreshSession();
 </script>
  
