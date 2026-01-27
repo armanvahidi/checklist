@@ -73,16 +73,36 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  
 <script>
-  // =========================
+   // Show JS errors on the page (so we don't need the console)
+  window.addEventListener("error", (e) => {
+    const el = document.getElementById("authMsg");
+    if (el) el.textContent = "JS error: " + e.message;
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    const el = document.getElementById("authMsg");
+    if (el) el.textContent = "Promise error: " + (e.reason?.message || e.reason);
+  });
+
+  // Grab authMsg early so we can display boot messages
+  const authMsg = document.getElementById("authMsg");
+  function setAuthMsg(s) { authMsg.textContent = s || ""; }
+
+  // BOOT CHECK
+  setAuthMsg("Booting...");
+  if (!window.supabase) {
+    setAuthMsg("Supabase library did not load (CDN blocked or failed).");
+    throw new Error("supabase-js not loaded");
+  }
+  setAuthMsg("Supabase library loaded.");
+
   // CONFIG
-  // =========================
   const SUPABASE_URL = "https://jifxrvcvruwanqgxgghw.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_MABvndEcuO3H7srlzVzqPg_neN-lYzK";
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
   // =========================
+  
   // SMALL HELPERS
   // =========================
   const authMsg = document.getElementById("authMsg");
