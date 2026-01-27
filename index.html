@@ -72,10 +72,16 @@
   </div>
 </main>
 
-<!-- <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    
+    document.getElementById("authMsg").textContent = "SCRIPT LOADED: " + new Date().toISOString();
+
+</script>
+  
+// <!-- <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   
-<script>
+<!-- <script>
    // Show JS errors on the page (so we don't need the console)
   window.addEventListener("error", (e) => {
     const el = document.getElementById("authMsg");
@@ -320,6 +326,6 @@
   // START
   refreshSession();
 </script> -->
-
+ 
 </body>
 </html>
