@@ -281,7 +281,7 @@
    };
 
    async function setDone(id, done) {
-     const up = await supabase.from("items").update({ done }).eq("id", id);
+     const up = await sb.from("items").update({ done }).eq("id", id);
      if (!mustOk("Update item", up)) return;
      await loadFromSupabase();
    }
