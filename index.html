@@ -184,7 +184,7 @@
        return;
      }
 
-     const res = await supabase
+     const res = await sb
        .from("lists")
        .select("id, title, items(id, text, done)")
        .eq("user_id", user.id)
